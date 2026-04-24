@@ -25,7 +25,11 @@ MINOR=$(echo "$VERSION" | cut -d. -f2)
 PATCH=$(echo "$VERSION" | cut -d. -f3)
 
 # ── Scan commit messages since last prod tag ──────────
-COMMIT_MSGS=$(git log "${LAST_PROD_TAG}..HEAD" --pretty=format:"%s")
+if [ "$LAST_PROD_TAG" = "v0.0.0" ]; then
+  COMMIT_MSGS=$(git log HEAD --pretty=format:"%s")
+else
+  COMMIT_MSGS=$(git log "${LAST_PROD_TAG}..HEAD" --pretty=format:"%s")
+fi
 
 echo "Commits since $LAST_PROD_TAG:"
 echo "$COMMIT_MSGS"

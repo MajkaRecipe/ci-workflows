@@ -5,7 +5,11 @@ set -e
 SINCE_TAG="${1:-v0.0.0}"
 
 # ── Scan commits since given tag ──────────────────────
-COMMITS=$(git log "${SINCE_TAG}..HEAD" --pretty=format:"%s|%h")
+if [ "$SINCE_TAG" = "v0.0.0" ]; then
+  COMMITS=$(git log HEAD --pretty=format:"%s|%h")
+else
+  COMMITS=$(git log "${SINCE_TAG}..HEAD" --pretty=format:"%s|%h")
+fi
 
 echo "Generating changelog since $SINCE_TAG"
 
