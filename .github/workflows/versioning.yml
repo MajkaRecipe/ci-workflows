@@ -11,9 +11,6 @@ on:
       new_tag:
         description: 'Generated version tag'
         value: ${{ jobs.versioning.outputs.new_tag }}
-      changelog_file:
-        description: 'Path to generated changelog file'
-        value: ${{ jobs.versioning.outputs.changelog_file }}
     secrets:
       token:
         description: 'GitHub token to push tags'
@@ -51,3 +48,10 @@ jobs:
         run: |
           chmod +x ci-workflows/.github/scripts/changelog.sh
           ci-workflows/.github/scripts/changelog.sh ${{ steps.semver.outputs.last_prod_tag }}
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: /tmp/changelog.txt
+          retention-days: 1
