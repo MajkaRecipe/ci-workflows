@@ -1,0 +1,53 @@
+name: Versioning
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: 'Target branch (dev or main)'
+        required: true
+        type: string
+    outputs:
+      new_tag:
+        description: 'Generated version tag'
+        value: ${{ jobs.versioning.outputs.new_tag }}
+      changelog_file:
+        description: 'Path to generated changelog file'
+        value: ${{ jobs.versioning.outputs.changelog_file }}
+    secrets:
+      github_token:
+        description: 'GitHub token to push tags'
+        required: true
+
+jobs:
+  versioning:
+    name: Versioning
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.semver.outputs.new_tag }}
+      changelog_file: ${{ steps.changelog.outputs.changelog_file }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.github_token }}
+
+      - name: Checkout semver & changelog scripts
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/ci-workflows   # ← ganti dengan org/repo kamu
+          path: ci-workflows
+          token: ${{ secrets.github_token }}
+
+      - name: Run semver
+        id: semver
+        run: |
+          chmod +x ci-workflows/.github/scripts/semver.sh
+          ci-workflows/.github/scripts/semver.sh ${{ inputs.branch }}
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          chmod +x ci-workflows/.github/scripts/changelog.sh
+          ci-workflows/.github/scripts/changelog.sh ${{ steps.semver.outputs.last_prod_tag }}
