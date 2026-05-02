@@ -58,9 +58,10 @@ fi
 
 NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
 
-# ── Determine output tag ──────────────────────────────
+# ── Determine output tag and previous dev/prod tag for changelog ─────────
 if [ "$BRANCH" = "main" ]; then
   NEW_TAG="${TAG_PREFIX}${NEXT_VERSION}"
+  PREV_DEV_TAG="$LAST_PROD_TAG"
 else
   # Find the last dev increment for this version
   LAST_DEV=$(git tag --list "${TAG_PREFIX}${NEXT_VERSION}-${DEV_SUFFIX}.*" \
@@ -69,9 +70,11 @@ else
 
   if [ -z "$LAST_DEV" ]; then
     DEV_NUM=1
+    PREV_DEV_TAG="$LAST_PROD_TAG"
   else
     DEV_NUM=$(echo "$LAST_DEV" | grep -oE "[0-9]+$")
     DEV_NUM=$((DEV_NUM + 1))
+    PREV_DEV_TAG="$LAST_DEV"
   fi
 
   NEW_TAG="${TAG_PREFIX}${NEXT_VERSION}-${DEV_SUFFIX}.${DEV_NUM}"
@@ -80,11 +83,13 @@ fi
 echo "New tag: $NEW_TAG"
 
 # ── Push tag to remote ────────────────────────────────
-git config user.name "github-actions[bot]"
-git config user.email "github-actions[bot]@users.noreply.github.com"
-git tag "$NEW_TAG"
-git push origin "$NEW_TAG"
+if [ "${PUSH_TAG}" != "false" ]; then
+  git config user.name "github-actions[bot]"
+  git config user.email "github-actions[bot]@users.noreply.github.com"
+  git tag "$NEW_TAG"
+  git push origin "$NEW_TAG"
+fi
 
 # ── Export outputs for GitHub Actions ─────────────────
 echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
-echo "last_prod_tag=$LAST_PROD_TAG" >> "$GITHUB_OUTPUT"
+echo "prev_dev_tag=$PREV_DEV_TAG" >> "$GITHUB_OUTPUT"

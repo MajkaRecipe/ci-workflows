@@ -47,7 +47,7 @@ jobs:
         id: changelog
         run: |
           chmod +x ci-workflows/.github/scripts/changelog.sh
-          ci-workflows/.github/scripts/changelog.sh ${{ steps.semver.outputs.last_prod_tag }}
+          ci-workflows/.github/scripts/changelog.sh ${{ steps.semver.outputs.prev_dev_tag }}
 
       - name: Upload changelog artifact
         uses: actions/upload-artifact@v4
